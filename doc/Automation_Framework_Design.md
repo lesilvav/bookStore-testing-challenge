@@ -240,8 +240,3 @@ The following assumptions were made during the design of this framework and shou
 
 ---
 
-## 15. Open Questions for Stakeholder Review
-
-- Is cross-browser coverage required for this delivery, or is Chromium-only acceptable for the initial scope?
-- Should the framework include visual regression testing, or is functional coverage sufficient?
-- Is there a target CI platform (GitHub Actions, Azure DevOps, Jenkins) this framework should be validated against as part of this delivery, or is that a separate phase?
