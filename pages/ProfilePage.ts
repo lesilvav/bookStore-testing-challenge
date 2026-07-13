@@ -43,6 +43,15 @@ export class ProfilePage {
     await expect(this.rows.filter({ hasText: title })).toBeVisible();
   }
 
+  async deleteBook(isbn: string): Promise<void> {
+    await this.page.locator(`#delete-record-${isbn}`).click();
+    await this.page.locator('#closeSmallModal-ok').click();
+  }
+
+  async expectCollectionEmpty(): Promise<void> {
+    await expect(this.rows).toHaveCount(0);
+  }
+
   async logout(): Promise<void> {
     await this.logoutButton.click();
   }

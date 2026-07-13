@@ -21,10 +21,10 @@
 | TC-010 | View empty profile collection | US-007 | High | UI | Yes | No |
 | TC-012 | Add book to collection via UI | US-008 | High | UI | Yes | Yes |
 | TC-018 | Access profile without authentication | US-007 | High | UI | Yes | Yes |
-| TC-002 | Search catalog with matching term | US-002 | Medium | UI | Yes | No |
+| TC-002 | Search catalog with matching term | US-002 | Medium | UI | Yes | Yes |
 | TC-003 | Search catalog with no matching term | US-002 | Medium | UI | Yes | No |
 | TC-009 | Log out from authenticated state | US-006 | Medium | UI | Yes | No |
-| TC-014 | Remove book from collection via UI | US-009 | Medium | UI | Yes | No |
+| TC-014 | Remove book from collection via UI | US-009 | Medium | UI | Yes | Yes |
 | TC-016 | Clear collection via UI | US-010 | Low | UI | Yes | No |
 | TC-011 | View profile with books via API-driven setup | US-007 | High | UI + API | Yes | No |
 | TC-005 | Create user via API | US-004 | High | API | Yes | Yes |

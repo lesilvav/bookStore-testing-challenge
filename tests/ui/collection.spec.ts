@@ -52,4 +52,34 @@ test.describe('Collection', () => {
 
     await expect(profilePage.unauthenticatedMessage).toBeVisible();
   });
+
+  /**
+   * TC-014: Remove Book from Collection via UI
+   * Trace to User Story: US-009
+   * See doc/bookStore_TestCases.md for the full test case definition.
+   *
+   * The book is seeded via the API (bookStoreClient) so the test focuses solely
+   * on the UI removal flow: trash icon -> confirmation modal -> browser alert.
+   */
+  test('TC-014: removes a book from the collection via the profile page', async ({
+    page,
+    authenticatedUser,
+    bookStoreClient,
+  }) => {
+    await bookStoreClient.addBooks(authenticatedUser.userId, [{ isbn: BOOK_ISBN }], authenticatedUser.token);
+
+    const loginPage = new LoginPage(page);
+    const profilePage = new ProfilePage(page);
+
+    await loginPage.goto();
+    await loginPage.login(authenticatedUser.userName, authenticatedUser.password);
+    await profilePage.expectLoggedInAs(authenticatedUser.userName);
+
+    await profilePage.expectBookInCollection(BOOK_TITLE);
+
+    page.once('dialog', dialog => dialog.accept());
+    await profilePage.deleteBook(BOOK_ISBN);
+
+    await profilePage.expectCollectionEmpty();
+  });
 });

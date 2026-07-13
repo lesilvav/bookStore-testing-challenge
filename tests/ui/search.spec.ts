@@ -24,3 +24,29 @@ test.describe('Catalog - Book Detail Navigation', () => {
     await expect(page).toHaveURL(/\/books$/);
   });
 });
+
+/**
+ * TC-002: Search Catalog with Matching Term
+ * Trace to User Story: US-002
+ * See doc/bookStore_TestCases.md for the full test case definition.
+ */
+test.describe('Catalog - Search', () => {
+  test('TC-002: search filters the catalog by a matching term', async ({ page }) => {
+    const bookStorePage = new BookStorePage(page);
+    const searchTerm = 'JavaScript';
+
+    await bookStorePage.goto();
+    await bookStorePage.search(searchTerm);
+    await expect(bookStorePage.rows.first()).toBeVisible();
+
+    const rowCount = await bookStorePage.rowCount();
+    expect(rowCount).toBeGreaterThan(0);
+
+    const rowTexts = await bookStorePage.rows.allTextContents();
+    for (const text of rowTexts) {
+      expect(text.toLowerCase()).toContain(searchTerm.toLowerCase());
+    }
+
+    await bookStorePage.clearSearch();
+  });
+});
