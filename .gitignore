@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.env
+.env.local
+
+# test artifacts
+test-results/
+playwright-report/
+blob-report/
+
+# @huggingface/transformers model cache (tests/nondeterministic)
+.cache/
+
+# editor / os
+.DS_Store
+*.log
+.vscode/
+.idea/
