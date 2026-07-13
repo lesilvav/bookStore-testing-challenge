@@ -51,7 +51,7 @@ Because the application exposes both a UI and a REST API operating on the same u
 | `TypeScript` | Static typing across the framework — catches structural errors before runtime |
 | `dotenv` | Environment variable management across local/CI environments |
 | `@faker-js/faker` | Dynamic test data generation (avoids collisions on a shared public demo environment) |
-| `allure-playwright` (or Playwright's built-in HTML reporter) | Structured, historical test reporting |
+| `Playwright's built-in HTML reporter`| Structured, historical test reporting |
 | `zod` | Runtime schema validation for API responses — catches contract drift beyond simple status-code checks |
 
 ---
@@ -157,14 +157,14 @@ Because `demoqa.com/books` is a **shared public demo environment**, static/hardc
 | Rely on Playwright's auto-waiting and web-first assertions (`expect(locator).toBeVisible()`) | Avoids arbitrary `sleep()` calls, the leading cause of both flakiness and slow suites |
 | Framework-level retry policy (configured once in `playwright.config.ts`), not per-test | Keeps retry behavior consistent and auditable, rather than scattered ad hoc across specs |
 | Explicit `test.fixme()` / quarantine tagging for known-flaky tests | Flaky tests are tracked and visible, not silently retried into a false "pass" |
-| Trace and video capture on failure only | Keeps CI artifact storage manageable while preserving full debugging context when it's actually needed |
+| Screenshot capture on failure only | Keeps CI artifact storage manageable while preserving visual debugging context when a test fails |
 
 ---
 
 ## 9. Reporting & Observability
 
-- **HTML report** (Playwright built-in or Allure) generated on every run, retained as a CI artifact.
-- On failure: screenshot, trace file, and (optionally) video are automatically attached to the report.
+- **HTML report** generated on every run, retained as a CI artifact. Will use Playwright built-in HTML Report.
+- On failure: a screenshot is automatically attached to the report. Video capture is disabled.
 - Each test is tagged with a stable identifier mapping back to the traceability matrix (Section 11), so failures can be triaged against functional coverage, not just file names.
 
 ---
@@ -176,7 +176,6 @@ While CI pipeline setup is outside the immediate scope of this deliverable, the 
 - Headless execution by default, controllable via environment variable for local debugging (`HEADED=true`).
 - Test sharding supported natively by Playwright for parallel execution across CI runners.
 - Reports and failure artifacts (traces, screenshots) published as pipeline artifacts.
-- Designed to fail the build on any test failure, with flaky/quarantined tests excluded from the blocking gate but still executed and reported for visibility.
 
 ---
 
