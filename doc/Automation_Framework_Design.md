@@ -147,7 +147,6 @@ Because `demoqa.com/books` is a **shared public demo environment**, static/hardc
 
 - All environment-specific values (base URLs, timeouts, credentials) are sourced from `.env` files, never hardcoded in test or framework code.
 - `config/environments.ts` exposes a typed configuration object, so a missing or malformed environment variable fails fast at startup rather than producing a cryptic runtime error mid-test.
-- Secrets (if any test accounts require persistent credentials) are excluded from version control via `.gitignore` and injected via CI secret management in pipeline execution.
 
 ---
 
