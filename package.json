@@ -8,6 +8,7 @@
     "test:ui": "playwright test tests/ui",
     "test:api": "playwright test tests/api",
     "test:headed": "HEADED=true playwright test",
+    "test:ui:headed": "HEADED=true playwright test tests/ui",
     "report": "playwright show-report"
   },
   "devDependencies": {

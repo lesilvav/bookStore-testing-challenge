@@ -32,4 +32,12 @@ All API-only test cases from `doc/bookStore_TestCases.md` are automated:
 - `TC-015` — Remove book from collection via API
 - `TC-017` — Clear collection via API
 
-UI and UI+API test cases (TC-001 through TC-004, TC-007 through TC-012, TC-014, TC-016, TC-018) are not yet automated.
+Five UI test cases are automated:
+
+- `TC-001` — View book catalog (`pages/BookStorePage.ts`, `tests/ui/catalog.spec.ts`)
+- `TC-004` — View book details from catalog (`pages/BookDetailPage.ts`, `tests/ui/search.spec.ts`)
+- `TC-007` — Log in with valid credentials, user created via API (`pages/LoginPage.ts`, `pages/ProfilePage.ts`, `tests/ui/login.spec.ts`)
+- `TC-012` — Add book to collection via UI, teardown via API (`tests/ui/collection.spec.ts`)
+- `TC-018` — Access profile without authentication (`tests/ui/collection.spec.ts`)
+
+Remaining UI and UI+API test cases (TC-002, TC-003, TC-008, TC-009, TC-010, TC-011, TC-014, TC-016) are not yet automated.
