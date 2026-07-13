@@ -2,7 +2,16 @@
 
 Playwright-based UI + API test automation framework for the DemoQA Book Store application (`https://demoqa.com/books`).
 
-See `doc/Automation_Framework_Design.md` for the full framework design, `doc/bookStore_UserStories.md` for user stories, and `doc/bookStore_TestCases.md` for the test case catalog.
+## Documents
+
+
+| Document | Description |
+|---|---|
+| [`doc/Automation_Framework_Design.md`](doc/Automation_Framework_Design.md) | Framework design document covering architecture decisions, tooling, fixture strategy, and test data management. |
+| [`doc/bookStore_SystemBlueprint.md`](doc/bookStore_SystemBlueprint.md) | System blueprint documenting pages, states, navigation, access control, UI behaviours, and available REST API endpoints. |
+| [`doc/bookStore_BusinessContext.md`](doc/bookStore_BusinessContext.md) | Business context and risk analysis for the DemoQA Book Store application, derived from the system blueprint. |
+| [`doc/bookStore_UserStories.md`](doc/bookStore_UserStories.md) | INVEST-compliant user stories derived from the system blueprint and business context. |
+| [`doc/bookStore_TestCases.md`](doc/bookStore_TestCases.md) | Traceable test cases derived from the user stories, including priority, type, and automation status. |
 
 ## Setup
 

@@ -97,11 +97,6 @@ The framework follows a layered architecture, separating test intent (what is be
 │       ├── bookstore.spec.ts
 │       └── account.spec.ts
 │
-├── utils/
-│   ├── assertions.ts           # Custom, domain-specific assertions
-│   ├── waits.ts                 # Reusable wait conditions beyond Playwright defaults
-│   └── modal.helper.ts          # Helpers for confirmation modals and browser alerts
-│
 └── reports/                      # Generated output (gitignored)
 ```
 
@@ -114,7 +109,6 @@ The framework follows a layered architecture, separating test intent (what is be
 | `api/clients/` | HTTP request construction and response handling |
 | `data/` | Test data construction |
 | `fixtures/` | Setup/teardown wiring |
-| `utils/` | Reusable helpers for alerts, modals, and domain-specific assertions |
 
 **Guiding principle:** a test file should read like a specification, not an implementation. If a reviewer unfamiliar with Playwright syntax cannot understand *what* is being verified, the abstraction has failed its purpose.
 
@@ -187,7 +181,7 @@ The following behaviors of the DemoQA Book Store influence how the framework int
 ## 10. Reporting & Observability
 
 - **HTML report** generated on every run, retained as a CI artifact. Will use Playwright built-in HTML Report.
-- On failure: a screenshot is automatically attached to the report. Video capture is disabled.
+- On failure: a screenshot is automatically attached to the report. Video capture is disabled to keep the execution time and artifact size reasonable.
 - Each test is tagged with a stable identifier mapping back to the traceability matrix (Section 13), so failures can be triaged against functional coverage, not just file names.
 
 ---
