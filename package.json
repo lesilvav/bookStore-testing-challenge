@@ -1,0 +1,21 @@
+{
+  "name": "bookstore-testing-challenge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright-based UI + API test automation framework for the DemoQA Book Store application.",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test tests/ui",
+    "test:api": "playwright test tests/api",
+    "test:headed": "HEADED=true playwright test",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@faker-js/faker": "^9.0.0",
+    "@types/node": "^20.14.0",
+    "dotenv": "^16.4.5",
+    "typescript": "^5.5.0",
+    "zod": "^3.23.8"
+  }
+}

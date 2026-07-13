@@ -71,8 +71,10 @@ The framework follows a layered architecture, separating test intent (what is be
 │
 ├── pages/
 │   ├── BookStorePage.ts       # Page Object: book list, search
-│   ├── BookDetailPage.ts      # Page Object: individual book view
-│   └── ProfilePage.ts         # Page Object: user's book collection
+│   ├── BookDetailPage.ts      # Page Object: individual book view (navigated via /books?search=<ISBN>)
+│   ├── ProfilePage.ts         # Page Object: user's book collection (empty, populated, and unauthenticated states)
+│   ├── LoginPage.ts           # Page Object: username/password login
+│   └── RegisterPage.ts        # Page Object: new user registration
 │
 ├── api/
 │   ├── clients/
@@ -97,7 +99,8 @@ The framework follows a layered architecture, separating test intent (what is be
 │
 ├── utils/
 │   ├── assertions.ts           # Custom, domain-specific assertions
-│   └── waits.ts                 # Reusable wait conditions beyond Playwright defaults
+│   ├── waits.ts                 # Reusable wait conditions beyond Playwright defaults
+│   └── modal.helper.ts          # Helpers for confirmation modals and browser alerts
 │
 └── reports/                      # Generated output (gitignored)
 ```
@@ -111,6 +114,7 @@ The framework follows a layered architecture, separating test intent (what is be
 | `api/clients/` | HTTP request construction and response handling |
 | `data/` | Test data construction |
 | `fixtures/` | Setup/teardown wiring |
+| `utils/` | Reusable helpers for alerts, modals, and domain-specific assertions |
 
 **Guiding principle:** a test file should read like a specification, not an implementation. If a reviewer unfamiliar with Playwright syntax cannot understand *what* is being verified, the abstraction has failed its purpose.
 
@@ -120,10 +124,11 @@ The framework follows a layered architecture, separating test intent (what is be
 
 | Pattern | Applied to | Problem it solves |
 |---|---|---|
-| **Page Object Model (POM)** | `BookStorePage`, `BookDetailPage`, `ProfilePage` | Isolates UI selectors from test logic, so UI changes require updates in one place, not across every test |
+| **Page Object Model (POM)** | `BookStorePage`, `BookDetailPage`, `ProfilePage`, `LoginPage`, `RegisterPage` | Isolates UI selectors from test logic, so UI changes require updates in one place, not across every test |
 | **Builder** | `UserBuilder` | Test users may need varying combinations of optional attributes (role, pre-seeded collection, session state); a builder avoids constructor overload and improves readability at the call site |
 | **Factory** | `BookStoreClient` / `AccountClient` instantiation per environment | Centralizes environment-specific client construction (base URL, auth headers) so tests never configure this directly |
 | **Strategy** | Authentication setup (UI login vs. API-seeded session) | Most tests don't need to *verify* login — they need to *start* authenticated. A strategy interface allows swapping the login mechanism without changing test code, significantly speeding up test setup |
+| **Helper** | `modal.helper.ts` | Encapsulates interactions with confirmation modals and browser alerts, which are difficult to drive with standard accessibility selectors on this application |
 | **Fixture/Dependency Injection** (Playwright-native) | `base.fixture.ts` | Provides pre-configured page objects and API clients to tests without manual instantiation, keeping test files declarative |
 
 ### Patterns deliberately not used
@@ -132,25 +137,43 @@ The framework follows a layered architecture, separating test intent (what is be
 
 ---
 
-## 6. Test Data Strategy
+## 6. Test Data & Isolation Strategy
 
 Because `demoqa.com/books` is a **shared public demo environment**, static/hardcoded test data (fixed usernames, fixed book IDs) carries a real risk of collision with other users or parallel test runs.
 
 **Approach:**
 - User accounts are generated dynamically per test run using `@faker-js/faker`, ensuring uniqueness.
-- Tests are designed to be **idempotent** — they do not depend on a specific starting state of the shared environment and clean up after themselves where the API allows it (e.g., deleting a created user or book association at teardown).
+- Tests are designed to be **idempotent** — they do not depend on a specific starting state of the shared environment and clean up after themselves where the API allows it.
 - Static reference data (e.g., ISBNs known to exist in the book catalog) is centralized in `data/` rather than duplicated across test files.
+
+**Teardown sequence:** When a test creates a test user, the cleanup order is:
+1. Clear the user's collection via `DELETE /BookStore/v1/Books?UserId=<userID>`.
+2. Delete the user via `DELETE /Account/v1/User/{UUID}`.
+The shared fallback account (`csilva`) must never be used for destructive actions such as "Delete Account".
+
+**Test isolation:** Each test receives a fresh browser context and page via the Playwright test runner. This provides clean session state for every test and removes the need for manual cookie, `localStorage`, or `sessionStorage` reset between tests. Any authentication required inside a test is established either through the UI login flow or by injecting an authenticated session into that test's isolated context.
 
 ---
 
-## 7. Environment Configuration
+## 7. UI-Specific Automation Considerations
+
+The following behaviors of the DemoQA Book Store influence how the framework interacts with the UI:
+
+| Behavior | Automation Impact |
+|---|---|
+| **Client-side catalog search** | The search box filters the rendered table without a network request; assertions should inspect the table state, not wait for an HTTP call. |
+| **Book detail via query parameter** | Book detail is rendered by setting `?search=<ISBN>` on `/books`; navigation and URL assertions must use this scheme, not a `/books/:isbn` route. |
+| **Public vs. authenticated pages** | `/books` and book detail are public; `/profile` and collection-management actions require authentication. Tests must verify the unauthenticated `/profile` prompt when no session exists. |
+| **Confirmation modals** | Bulk and single-book deletes require modal confirmation. The framework uses `modal.helper.ts` to confirm or cancel these dialogs reliably. |
+
+## 8. Environment Configuration
 
 - All environment-specific values (base URLs, timeouts, credentials) are sourced from `.env` files, never hardcoded in test or framework code.
 - `config/environments.ts` exposes a typed configuration object, so a missing or malformed environment variable fails fast at startup rather than producing a cryptic runtime error mid-test.
 
 ---
 
-## 8. Flakiness Mitigation Strategy
+## 9. Flakiness Mitigation Strategy
 
 | Practice | Rationale |
 |---|---|
@@ -161,15 +184,25 @@ Because `demoqa.com/books` is a **shared public demo environment**, static/hardc
 
 ---
 
-## 9. Reporting & Observability
+## 10. Reporting & Observability
 
 - **HTML report** generated on every run, retained as a CI artifact. Will use Playwright built-in HTML Report.
 - On failure: a screenshot is automatically attached to the report. Video capture is disabled.
-- Each test is tagged with a stable identifier mapping back to the traceability matrix (Section 11), so failures can be triaged against functional coverage, not just file names.
+- Each test is tagged with a stable identifier mapping back to the traceability matrix (Section 13), so failures can be triaged against functional coverage, not just file names.
 
 ---
 
-## 10. CI/CD Integration (forward-looking)
+## 11. Hybrid UI+API Tests
+
+The framework supports tests that seed state through the API and validate it through the UI. This pattern is used for:
+
+- Creating a user via `POST /Account/v1/User` and then verifying login or profile behavior in the browser.
+- Adding a book to a collection via `POST /BookStore/v1/Books` and then confirming the book appears in `/profile`.
+- Clearing a collection via `DELETE /BookStore/v1/Books` as teardown for UI tests.
+
+These hybrid tests rely on the assumption that the API and UI share the same backend state (see Section 14, Assumption 2). They are tagged as `UI + API` in the test case traceability matrix.
+
+## 12. CI/CD Integration (forward-looking)
 
 While CI pipeline setup is outside the immediate scope of this deliverable, the framework is designed to plug into a pipeline with minimal friction:
 
@@ -179,20 +212,28 @@ While CI pipeline setup is outside the immediate scope of this deliverable, the 
 
 ---
 
-## 11. Traceability Matrix
+## 13. Traceability Matrix
 
-| Functional Area | Layer | Covered By |
-|---|---|---|
-| Book search | UI | `tests/ui/search.spec.ts` |
-| Book detail view | UI | `tests/ui/search.spec.ts` |
-| Add/remove book from collection | UI | `tests/ui/collection.spec.ts` |
-| User registration/login | API | `tests/api/account.spec.ts` |
-| Book CRUD | API | `tests/api/bookstore.spec.ts` |
-| Cross-layer consistency (UI reflects API state) | UI + API | `tests/ui/collection.spec.ts` (seeded via API) |
+The following matrix maps functional areas to the implemented test cases (`TC-`) and user stories (`US-`).
+
+| Functional Area | Layer | Test Cases | User Stories |
+|---|---|---|---|
+| Book catalog display | UI | TC-001 | US-001 |
+| Book search | UI | TC-002, TC-003 | US-002 |
+| Book detail view | UI | TC-004 | US-003 |
+| User registration | API | TC-005, TC-006 | US-004 |
+| User login | UI | TC-007, TC-008 | US-005 |
+| User logout | UI | TC-009 | US-006 |
+| Profile collection (empty) | UI | TC-010 | US-007 |
+| Profile collection (populated) | UI + API | TC-011 | US-007 |
+| Add book to collection | UI + API | TC-012, TC-013 | US-008 |
+| Remove book from collection | UI + API | TC-014, TC-015 | US-009 |
+| Clear collection | UI + API | TC-016, TC-017 | US-010 |
+| Unauthenticated access to profile | UI | TC-018 | US-007 |
 
 ---
 
-## 12. Assumptions
+## 14. Assumptions
 
 The following assumptions were made during the design of this framework and should be validated or corrected before implementation proceeds:
 
@@ -205,7 +246,7 @@ The following assumptions were made during the design of this framework and shou
 
 ---
 
-## 13. Open Questions for Stakeholder Review
+## 15. Open Questions for Stakeholder Review
 
 - Is cross-browser coverage required for this delivery, or is Chromium-only acceptable for the initial scope?
 - Should the framework include visual regression testing, or is functional coverage sufficient?
